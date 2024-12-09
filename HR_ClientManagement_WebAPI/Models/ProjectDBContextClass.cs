@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HR_ClientManagement_WebAPI.Models
 {
@@ -6,8 +7,12 @@ namespace HR_ClientManagement_WebAPI.Models
     {
         [Key]
         public required int ProjectID { get; set; }  
-        public required string ProjectName { get; set; }  
+        public required string ProjectName { get; set; }
 
-        public virtual required ICollection<EmployeeDBContextClass> Employees { get; set; }  
+        //public int EmployeeID { get; set; }
+
+        //[ForeignKey("EmployeeID")]
+        public virtual IEnumerable <EmployeeDBContextClass>? Employee { get; set; }
     }
 }
+

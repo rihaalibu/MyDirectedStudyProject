@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HR_ClientManagement_WebAPI.Models
 {
@@ -9,10 +10,10 @@ namespace HR_ClientManagement_WebAPI.Models
         public required string EmployeeName { get; set; }  
         public required float Salary { get; set; }
 
-        
-        public required int ProjectID { get; set; }
+        [ForeignKey("ProjectID")]
+        public int ProjectID { get; set; }
 
         
-        public virtual required ProjectDBContextClass Project { get; set; }  
+        public virtual ProjectDBContextClass? Project { get; set; }  
     }
 }
