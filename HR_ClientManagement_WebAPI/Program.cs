@@ -1,81 +1,130 @@
 using HR_ClientManagement_WebAPI.Models;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
- {
-     options.SuppressConsumesConstraintForFormFileParameters = true;
-     options.SuppressInferBindingSourcesForParameters = true;
-     options.SuppressModelStateInvalidFilter = true;
-     options.SuppressMapClientErrors = true;
-     options.ClientErrorMapping[StatusCodes.Status404NotFound].Link =
-         "https://httpstatuses.com/404";
- });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddAuthorization();
+// Add services to the container
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSpaStaticFiles(configuration =>
-{
-    configuration.RootPath = "wwwroot";
+builder.Services.AddDefaultIdentity<User>()
+     .AddEntityFrameworkStores<HRAppDBContext>();
 
-});
-//builder.WebHost.UseWebRoot("react-app");
+builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
+    {
+        //Console.WriteLine(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]));
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("Token validated successfully");
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 
-builder.Services.AddDbContext<HRAppDBContextClass>(options =>
+
+builder.Services.AddAuthorization();
+// Configure JWT Authentication
+// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+//     .AddJwtBearer(options =>
+//     {
+//         options.TokenValidationParameters = new TokenValidationParameters
+//         {
+//             ValidateIssuer = true,
+//             ValidateAudience = true,
+//             ValidateLifetime = true,
+//             ValidateIssuerSigningKey = true,
+//             ValidIssuer = builder.Configuration["Jwt:Issuer"],
+//             ValidAudience = builder.Configuration["Jwt:Audience"],
+//             IssuerSigningKey = new SymmetricSecurityKey(
+//                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+//         };
+//     });
+
+
+
+
+// Database Configuration
+builder.Services.AddDbContext<HRAppDBContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false)
+//     .AddEntityFrameworkStores<HRAppDBContext>();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+builder.Services.Configure<IdentityOptions>(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+
+    //User Settings
+    options.User.AllowedUserNameCharacters =
+   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = false;
 }
 
 
+);
+// SPA Static Files
+// builder.Services.AddSpaStaticFiles(configuration =>
+// {
+//     configuration.RootPath = "wwwroot";
+// });
+
+var app = builder.Build();
 
 
-//app.UseHttpsRedirection();
+// Configure the HTTP request pipeline
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI();
+// }
 
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{/}"
-//    );
-app.UseAuthorization();
-
-app.MapControllers();
-
-//app.UseSpaStaticFiles();
-
+// Middleware Pipeline
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-//app.UseCors("AllowReactApp");
-
-app.UseCors(builder => {
-    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-});
-/*
-app.UseSpa(spa =>
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapIdentityApi<User>();
+app.UseCors(builder =>
 {
-    spa.Options.SourcePath = "react-app/dist";
-
-    if (app.Environment.IsDevelopment())
-    {
-        spa.UseReactDevelopmentServer(npmScript: "start");
-    }
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader();
 });
 
-*/
+app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();

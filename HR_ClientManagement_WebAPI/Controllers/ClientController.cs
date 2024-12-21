@@ -4,7 +4,9 @@ using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Authorization;
+using NuGet.Protocol;
+
 
 namespace HR_ClientManagement_WebAPI.Controllers
 {
@@ -12,19 +14,20 @@ namespace HR_ClientManagement_WebAPI.Controllers
     [ApiController]
     public class ClientController : ControllerBase
     {
-        // GET: api/<ClientController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
 
-            return new string[] { "value1", "value2" };
+        [HttpGet]
+        public IEnumerable<Object> Get([FromServices] HRAppDBContext context)
+        {
+            var cl_list = context.Clients.ToList();
+            return cl_list;
         }
 
-        // GET api/<ClientController>/1
+
+        [Authorize]
         [HttpGet("{id}")]
-        public IActionResult Get(int id, [FromServices] HRAppDBContextClass context)
+        public IActionResult Get(int id, [FromServices] HRAppDBContext context)
         {
-            var cl = context.Clients.FirstOrDefault(c => c.ClientID == id);
+            var cl = context.Clients.FirstOrDefault(c => c.ClientId == id);
             if (cl != null)
             {
                 return Ok(cl);
@@ -35,9 +38,10 @@ namespace HR_ClientManagement_WebAPI.Controllers
             }
         }
 
-        // POST api/<ClientController>
+
+        [Authorize]
         [HttpPost]
-        public IActionResult Post([FromBody] ClientDBContextClass client, [FromServices] HRAppDBContextClass context)
+        public IActionResult Post([FromBody] Client client, [FromServices] HRAppDBContext context)
         {
             Debug.WriteLine(client);
             if (!ModelState.IsValid)
@@ -46,10 +50,10 @@ namespace HR_ClientManagement_WebAPI.Controllers
             }
             if (client != null)
             {
-                context.Clients.Add(client);  // Add employee object to DbSet
-                context.SaveChanges();        // Save changes to the database
+                context.Clients.Add(client);
+                context.SaveChanges();
 
-                return CreatedAtAction(nameof(Post), new { id = client.ClientID }, client);
+                return CreatedAtAction(nameof(Post), new { id = client.ClientId }, client);
             }
             else
             {
@@ -58,26 +62,28 @@ namespace HR_ClientManagement_WebAPI.Controllers
         }
 
 
-        // DELETE api/<ClientController>/4
+
+        [Authorize]
         [HttpDelete("DeleteClient/{id}")]
-        public async Task<IActionResult> Delete(int id, [FromServices] HRAppDBContextClass context)
+        public async Task<IActionResult> Delete(int id, [FromServices] HRAppDBContext context)
         {
             var client = await context.Clients.FindAsync(id);
             if (client == null)
             {
                 return NotFound("Client not found");
-            }  
+            }
             context.Clients.Remove(client);
             await context.SaveChangesAsync();
             return Ok("Client deleted successfully");
         }
 
-        // Update: PUT api/client/updateclient/3
+
+        [Authorize]
         [HttpPut("updateclient/{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] ClientDBContextClass updatedclient, [FromServices] HRAppDBContextClass context)
+        public async Task<IActionResult> Put(int id, [FromBody] Client updatedclient, [FromServices] HRAppDBContext context)
         {
             var existingclient = await context.Clients.FindAsync(id);
-            
+
             if (existingclient == null)
             {
                 return NotFound("client not found");
