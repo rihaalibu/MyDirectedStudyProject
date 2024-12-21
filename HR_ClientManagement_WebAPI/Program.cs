@@ -11,7 +11,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthorization();
-// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -68,9 +67,6 @@ builder.Services.AddAuthorization();
 //     });
 
 
-
-
-// Database Configuration
 builder.Services.AddDbContext<HRAppDBContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -85,8 +81,6 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 6;
     options.Password.RequiredUniqueChars = 1;
-
-    //User Settings
     options.User.AllowedUserNameCharacters =
    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
     options.User.RequireUniqueEmail = false;
@@ -94,7 +88,6 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 
 );
-// SPA Static Files
 // builder.Services.AddSpaStaticFiles(configuration =>
 // {
 //     configuration.RootPath = "wwwroot";
@@ -103,14 +96,13 @@ builder.Services.Configure<IdentityOptions>(options =>
 var app = builder.Build();
 
 
-// Configure the HTTP request pipeline
 // if (app.Environment.IsDevelopment())
 // {
 //     app.UseSwagger();
 //     app.UseSwaggerUI();
 // }
 
-// Middleware Pipeline
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

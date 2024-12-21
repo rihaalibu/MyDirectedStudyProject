@@ -1,7 +1,7 @@
 using HR_ClientManagement_WebAPI.Controllers;
 using HR_ClientManagement_WebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;npm
+using Microsoft.EntityFrameworkCore;
 
 using MockQueryable.Moq;
 using Moq;

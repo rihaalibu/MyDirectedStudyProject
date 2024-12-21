@@ -61,7 +61,6 @@ namespace HR_ClientManagement_WebAPI.Controllers
 
         private bool VerifyPassword(string inputPassword, string storedPassword)
         {
-            // In production, implement proper password hashing
             return inputPassword == storedPassword;
         }
     }

@@ -113,7 +113,7 @@ const MaintenanceProjectReport = () => {
                         Client: {project.clientName}
                     </Typography>
                     <Typography color="textSecondary" gutterBottom>
-                        Start Date: {new Date(project.resources.startDate).toLocaleDateString()}
+                        Start Date: {new Date(project.startDate).toLocaleDateString()}
                     </Typography>
                     
                     <Table>
@@ -137,8 +137,7 @@ const MaintenanceProjectReport = () => {
                         </TableBody>
                     </Table>
                 </Paper>
-            ))}
-        </Box>
+            ))}        </Box>
     );
 };
 
